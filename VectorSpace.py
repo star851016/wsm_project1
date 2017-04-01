@@ -1,6 +1,8 @@
 from pprint import pprint
 from Parser import Parser
 import util
+import glob
+import os
 
 class VectorSpace:
     """ A algebraic model for representing text documents as vectors of identifiers.
@@ -89,14 +91,21 @@ class VectorSpace:
 
 if __name__ == '__main__':
     #test data
-    with open("./documents/100067.product") as file1,open("./documents/100181.product") as file2:
 
-        documentsAll = []
+    path = './documents/*.product'
+    files = glob.glob(path)
+    for filename in files:
+        with open(filename, 'r') as f:
+            for documents in f:
+                vectorSpace = VectorSpace(documents)
 
-        documentsAll.append( file1.read().split(' ') )
-        documentsAll.append( file2.read().split(' ') )
-        print documentsAll[0]
-        print documentsAll[1]
+                # print vectorSpace.vectorKeywordIndex
+
+                print vectorSpace.documentVectors
+                #
+                # pprint(vectorSpace.related(1))
+                #
+                # pprint(vectorSpace.search(["cat"]))
 
     # vectorSpace = VectorSpace(documents)
     #
