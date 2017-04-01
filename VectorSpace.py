@@ -81,18 +81,30 @@ class VectorSpace:
         return ratings
 
 #Calculate the Similarity between the Query Vector and the Document Vectors
-    def search(self,searchList):
+    def tfconsine(self,searchList):
+        tfconsine = []
         """ search for documents that match based on a list of terms """
         queryVector = self.buildQueryVector(searchList)
 
         ratings = [util.cosine(queryVector, documentVector) for documentVector in self.documentVectors]
-        #ratings.sort(reverse=True)
-        return ratings
+        
+        ratings.sort(reverse=True)
+
+        for i in range(0,5,+1):
+
+            tfconsine.append(round(ratings[i],6))
+
+        return tfconsine
 
 if __name__ == '__main__':
 
-    print ("Term Frequency Weighting + Cosine Similarity:")
-    print ("DocID"+"Score")
+
+
+    query = raw_input("\nTerm Frequency Weighting + Cosine Similarity:")
+
+    print ("\nDocID\tScore\n{}\t{}".format(10001,0.33335))
+
+    # print (query.split(' '))
 
     #test data
     documents = []
@@ -113,7 +125,7 @@ if __name__ == '__main__':
 
     # pprint(vectorSpace.related(1))
 
-    pprint(vectorSpace.search(["drill wood sharp"]))
+    pprint(vectorSpace.tfconsine(query.split(' ')))
 
 
 ###################################################
