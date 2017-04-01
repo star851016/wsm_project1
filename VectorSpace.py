@@ -55,7 +55,7 @@ class VectorSpace:
             offset+=1
         return vectorIndex  #(keyword:position)
 
-#Transfer Documents into Vectors
+
     def makeVector(self, wordString):
         """ @pre: unique(vectorIndex) """
 
@@ -90,31 +90,30 @@ class VectorSpace:
         return ratings
 
 if __name__ == '__main__':
-    #test data
 
+    print ("Term Frequency Weighting + Cosine Similarity:")
+    print ("DocID"+"Score")
+
+    #test data
+    documents = []
     path = './documents/*.product'
     files = glob.glob(path)
     for filename in files:
         with open(filename, 'r') as f:
-            for documents in f:
-                vectorSpace = VectorSpace(documents)
 
-                # print vectorSpace.vectorKeywordIndex
+            documents.append(f.read())
 
-                print vectorSpace.documentVectors
-                #
-                # pprint(vectorSpace.related(1))
-                #
-                # pprint(vectorSpace.search(["cat"]))
+    # print documents
 
-    # vectorSpace = VectorSpace(documents)
-    #
+    vectorSpace = VectorSpace(documents)
+
     # print vectorSpace.vectorKeywordIndex
     #
     # print vectorSpace.documentVectors
-    #
+
     # pprint(vectorSpace.related(1))
-    #
-    # pprint(vectorSpace.search(["cat"]))
+
+    pprint(vectorSpace.search(["drill wood sharp"]))
+
 
 ###################################################
