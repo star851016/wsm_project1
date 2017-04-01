@@ -96,30 +96,72 @@ class VectorSpace:
 
         return
 
+    def tfJaccard(self,searchList):
+
+        """ search for documents that match based on a list of terms """
+        queryVector = self.buildQueryVector(searchList)
+
+        ratings = [self.JaccardScore(queryVector, documentVector) for documentVector in self.documentVectors]
+
+        ratings.sort(reverse=True)
+
+        for i in range(0,5,+1):
+
+            print ("\n{}\t{}".format(" ",round(ratings[i],6)))
+
+        return
+
+    def JaccardScore(self,labels1, labels2):
+
+        n11 = n10 = n01 = 0
+        n = len(labels1)
+
+        for i, j in itertools.combinations(xrange(n), 2):
+            comembership1 = labels1[i] == labels1[j]
+            comembership2 = labels2[i] == labels2[j]
+            if comembership1 and comembership2:
+                n11 += 1
+            elif comembership1 and not comembership2:
+                n10 += 1
+            elif not comembership1 and comembership2:
+                n01 += 1
+        return float(n11) / (n11 + n10 + n01)
+
+
+    # def JaccardScore(self,queryVector, documentVector):
+    #
+    #     dist = (np.double(np.bitwise_and((queryVector != documentVector),np.bitwise_or(queryVector != 0, documentVector != 0)).sum()) /np.double(np.bitwise_or(queryVector != 0, documentVector != 0).sum()))
+    #
+    #     return dist
+
+
 if __name__ == '__main__':
 
+    # query = raw_input("\nTerm Frequency (TF) Weighting + Cosine Similarity : ")
 
+    # print ("\nDocID\tScore")
 
-    query = raw_input("\nTerm Frequency Weighting + Cosine Similarity:")
-
-    print ("\nDocID\tScore")
-
-
-
-    # print (query.split(' '))
-
-    #test data
     documents = []
+    docID = []
+
     path = './documents/*.product'
     files = glob.glob(path)
+
     for filename in files:
+
         with open(filename, 'r') as f:
 
             documents.append(f.read())
 
-    # print documents
+        base = os.path.basename(filename)
 
-    vectorSpace = VectorSpace(documents)
+        docID.append(os.path.splitext(base)[0])
+
+    print docID
+        # print os.path.splitext(base)[0]
+
+
+    # vectorSpace = VectorSpace(documents)
 
     # print vectorSpace.vectorKeywordIndex
     #
@@ -127,8 +169,11 @@ if __name__ == '__main__':
 
     # pprint(vectorSpace.related(1))
 
-    vectorSpace.tfconsine(query.split(' '))
-    # for i in range(0,5,+1):
-    #     print ("\n{}\t{}".format(" ",tfconsine[i]))
+    # vectorSpace.tfconsine(query.split(' '))
+
+    # print("Term Frequency (TF) Weighting + Jaccard Similarity : ")
+    # print ("\nDocID\tScore")
+    # vectorSpace.tfJaccard(["drill wood sharp"])
+    # vectorSpace.tfJaccard(query.split(' '))
 
 ###################################################
