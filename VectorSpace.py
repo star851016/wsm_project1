@@ -23,6 +23,9 @@ class VectorSpace:
     #Tidies terms
     parser=None
 
+    querytfidf = []
+
+    doctfidfs = []
 
 
     def __init__(self, documents=[]):
@@ -143,10 +146,6 @@ class VectorSpace:
 
         idfs = []
 
-        querytfidf = []
-
-        doctfidfs = []
-
         queryVector = self.buildQueryVector(searchList)
 
         for word in self.vectorKeywordIndex:
@@ -158,17 +157,17 @@ class VectorSpace:
         # print idfs
 
         for  i,(value,idf) in enumerate(zip(queryVector, idfs)):
-            querytfidf.append(self.tfidf(queryVector[i],idf))
+            self.querytfidf.append(self.tfidf(queryVector[i],idf))
         # print querytfidf
 
         for  i ,(documentVector,idf) in enumerate(zip(self.documentVectors, idfs)):
             doctfidf = []
             for i in range(0, len(documentVector)):
                 doctfidf.append(self.tfidf(documentVector[i],idf))
-            doctfidfs.append(doctfidf)
+            self.doctfidfs.append(doctfidf)
         # print doctfidfs
 
-        ratings = [util.cosine(querytfidf, doc) for doc in doctfidfs]
+        ratings = [util.cosine(self.querytfidf, doc) for doc in self.doctfidfs]
 
         dictionary = dict(zip(docID, ratings))
 
@@ -196,9 +195,7 @@ class VectorSpace:
 
         queryVector = self.buildQueryVector(searchList)
 
-        
-
-        ratings = [self.JaccardScore(documentVector,queryVector) for documentVector in self.documentVectors]
+        ratings = [self.JaccardScore(self.querytfidf, doc) for doc in self.doctfidfs]
 
         dictionary = dict(zip(docID, ratings))
 
@@ -214,10 +211,7 @@ class VectorSpace:
 
         queryVector = self.buildQueryVector(searchList)
 
-        # queryIndex = map(lambda val: ([i for i, x in enumerate(queryVector) if queryVector[i] != 0]), queryVector)[0]
-        # print queryIndex
-
-        ratings = [self.JaccardScore(documentVector,queryVector) for documentVector in self.documentVectors]
+        ratings = [self.JaccardScore(self.querytfidf, doc) for doc in self.doctfidfs]
 
         dictionary = dict(zip(docID, ratings))
 
@@ -266,17 +260,19 @@ if __name__ == '__main__':
     # print ("\nDocID\tScore")
     # vectorSpace.tfidfcos(query.split(' '),docID)
 
+    vectorSpace.tfidfcos(["drill wood sharp"],docID)
+
     # print("TF-IDF Weighting + Jaccard Similarity : ")
     # print ("\nDocID\tScore")
     # vectorSpace.tfidfJaccard(query.split(' '),docID)
 
-    vectorSpace.tfidfJaccard(["drill wood sharp"],docID)
+    # vectorSpace.tfidfJaccard(["drill wood sharp"],docID)
 
     # print("Feedback Queries TF-IDF Weighting + Jaccard Similarity : ")
     # print ("\nDocID\tScore")
     # vectorSpace.feedBack(query.split(' '),docID)
 
-    vectorSpace.feedBack(["drill wood sharp"],docID)
+    # vectorSpace.feedBack(["drill wood sharp"],docID)
 
 
 
