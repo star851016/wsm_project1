@@ -105,7 +105,6 @@ class VectorSpace:
 
     def tfJaccard(self,searchList,docID):
 
-        """ search for documents that match based on a list of terms """
         queryVector = self.buildQueryVector(searchList)
 
         # queryIndex = map(lambda val: ([i for i, x in enumerate(queryVector) if queryVector[i] != 0]), queryVector)[0]
@@ -186,24 +185,60 @@ class VectorSpace:
         return sum(1 for documentVector in documentVectors  if documentVector[word] != 0)
 
     def idf(self,documentVectors, n_containing):
-        # print n_containing
+
         return math.log(len(documentVectors) / n_containing)
 
     def tfidf(self,value,idf):
-        # print  float(value * idf)
+
         return float(value * idf)
+
+    def tfidfJaccard(self,searchList,docID):
+
+        queryVector = self.buildQueryVector(searchList)
+
+        
+
+        ratings = [self.JaccardScore(documentVector,queryVector) for documentVector in self.documentVectors]
+
+        dictionary = dict(zip(docID, ratings))
+
+        sorted_doc = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
+
+        for word, score in sorted_doc[:5]:
+
+            print("\n{}\t{}".format(word, round(score, 6)))
+
+        return
+
+    def feedBack(self,searchList,docID):
+
+        queryVector = self.buildQueryVector(searchList)
+
+        # queryIndex = map(lambda val: ([i for i, x in enumerate(queryVector) if queryVector[i] != 0]), queryVector)[0]
+        # print queryIndex
+
+        ratings = [self.JaccardScore(documentVector,queryVector) for documentVector in self.documentVectors]
+
+        dictionary = dict(zip(docID, ratings))
+
+        sorted_doc = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
+
+        for word, score in sorted_doc[:5]:
+
+            print("\n{}\t{}".format(word, round(score, 6)))
+
+        return
 
 
 
 if __name__ == '__main__':
 
     # query = raw_input("\nTerm Frequency (TF) Weighting + Cosine Similarity : ")
-    #
+
     # print ("\nDocID\tScore")
 
     documents = []
     docID = []
-
     text = []
 
     path = './documents/*.product'
@@ -215,32 +250,34 @@ if __name__ == '__main__':
 
             documents.append(f.read())
 
-            # text.append(tb(f.read()))
-
-
         base = os.path.basename(filename)
-
         docID.append(os.path.splitext(base)[0])
 
     vectorSpace = VectorSpace(documents)
-
-    # print vectorSpace.vectorKeywordIndex
-
-    # print vectorSpace.documentVectors
-
-    # pprint(vectorSpace.related(1))
-
     # vectorSpace.tfconsine(query.split(' '),docID)
-
-    # vectorSpace.tfconsine(["drill wood sharp"],docID)
 
     # print("Term Frequency (TF) Weighting + Jaccard Similarity : ")
     # print ("\nDocID\tScore")
-
-    # vectorSpace.tfJaccard(["drill wood sharp"],docID)
     # vectorSpace.tfJaccard(query.split(' '),docID)
 
-    vectorSpace.tfidfcos(["drill wood sharp"],docID)
+    # vectorSpace.tfJaccard(["drill wood sharp"],docID)
+
+    # print("TF-IDF Weighting + Cosine Similarity : ")
+    # print ("\nDocID\tScore")
+    # vectorSpace.tfidfcos(query.split(' '),docID)
+
+    # print("TF-IDF Weighting + Jaccard Similarity : ")
+    # print ("\nDocID\tScore")
+    # vectorSpace.tfidfJaccard(query.split(' '),docID)
+
+    vectorSpace.tfidfJaccard(["drill wood sharp"],docID)
+
+    # print("Feedback Queries TF-IDF Weighting + Jaccard Similarity : ")
+    # print ("\nDocID\tScore")
+    # vectorSpace.feedBack(query.split(' '),docID)
+
+    vectorSpace.feedBack(["drill wood sharp"],docID)
+
 
 
 ###################################################
