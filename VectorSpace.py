@@ -1,10 +1,12 @@
 from pprint import pprint
 from Parser import Parser
 from textblob import TextBlob as tb
+from numpy import multiply
 import numpy as np
 import util
 import glob
 import os
+import math
 
 class VectorSpace:
     """ A algebraic model for representing text documents as vectors of identifiers.
@@ -36,6 +38,7 @@ class VectorSpace:
 
         #print self.vectorKeywordIndex
         #print self.documentVectors
+
 
 #Indexing
     def getVectorKeywordIndex(self, documentList):
@@ -105,10 +108,10 @@ class VectorSpace:
         """ search for documents that match based on a list of terms """
         queryVector = self.buildQueryVector(searchList)
 
-        queryIndex = map(lambda val: ([i for i, x in enumerate(queryVector) if queryVector[i] != 0]), queryVector)[0]
-        print queryIndex
+        # queryIndex = map(lambda val: ([i for i, x in enumerate(queryVector) if queryVector[i] != 0]), queryVector)[0]
+        # print queryIndex
 
-        ratings = [self.JaccardScore(queryIndex,documentVector,queryVector) for documentVector in self.documentVectors]
+        ratings = [self.JaccardScore(documentVector,queryVector) for documentVector in self.documentVectors]
 
         dictionary = dict(zip(docID, ratings))
 
@@ -120,64 +123,82 @@ class VectorSpace:
 
         return
 
-    def JaccardScore(self,queryIndex,documentVector,queryVector):
-
-        # intersectionLen = 0
-
-        # for i, (a, b) in enumerate(zip(queryVector, documentVector)):
-        #
-        #     while (queryVector[i] != 0) and (documentVector[i] != 0):
-        #
-        #             intersectionLen += 1 ;
+    def JaccardScore(self,documentVector,queryVector):
 
         # queryIndex = map(lambda val: ([i for i, x in enumerate(queryVector) if queryVector[i] != 0]), queryVector)[0]
         # print queryIndex
 
+        # docIndex = map(lambda val: ([i for i in xrange(len(documentVector)) if documentVector[i] != 0]), documentVector)[0]
+        # print docIndex
 
-        docIndex = map(lambda val: ([i for i in xrange(len(documentVector)) if documentVector[i] != 0]), documentVector)[0]
-        print docIndex
-
-        c = set(queryIndex).intersection(set(docIndex))
-
+        prod_of_lists = multiply(queryVector,documentVector)
+        print prod_of_lists
+        c = map(lambda val: ([i for i in xrange(len(prod_of_lists)) if prod_of_lists[i] != 0]), prod_of_lists)[0]
         print c
 
         return  float(len(c)) / (len(queryVector) + len(documentVector) - len(c))
-        #
 
+    def tfidfcos(self,searchList,docID):
 
+        n_containings = []
 
+        idfs = []
 
+        querytfidf = []
 
-        # c = set(queryIndex).intersection(set(docIndex))
-        #
-        # print c
-        #
-        # return float(len(c)) / (len(queryVector) + len(documentVector) - len(c))
+        doctfidfs = []
 
-    def tfidfcos(self,text):
-        for i, blob in enumerate(text):
-            # print("Top words in document {}".format(i + 1))
-            scores = {word: self.tfidf(word, blob, bloblist) for word in blob.words}
+        queryVector = self.buildQueryVector(searchList)
 
-            sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-            for word, score in sorted_words[:3]:
-                print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
+        for word in self.vectorKeywordIndex:
+            n_containings.append(self.n_containing(self.vectorKeywordIndex[word],self.documentVectors))
+        # print n_containings
 
+        for n_containing in n_containings:
+            idfs.append(self.idf(queryVector,n_containing))
+        # print idfs
 
+        for  i,(value,idf) in enumerate(zip(queryVector, idfs)):
+            querytfidf.append(self.tfidf(queryVector[i],idf))
+        # print querytfidf
 
+        for  i ,(documentVector,idf) in enumerate(zip(self.documentVectors, idfs)):
+            doctfidf = []
+            for i in range(0, len(documentVector)):
+                doctfidf.append(self.tfidf(documentVector[i],idf))
+            doctfidfs.append(doctfidf)
+        # print doctfidfs
 
-    def idf(word, bloblist):
+        ratings = [util.cosine(querytfidf, doc) for doc in doctfidfs]
 
-        return math.log(len(bloblist) / (1 + 2048))
+        dictionary = dict(zip(docID, ratings))
 
-    def tfidf(word, blob, bloblist):
-        return self.build(word, blob) * self.idf(word, bloblist)
+        sorted_doc = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
+
+        for word, score in sorted_doc[:5]:
+
+            print("\n{}\t{}".format(word, round(score, 6)))
+
+        return
+
+    def n_containing(self,word, documentVectors):
+
+        return sum(1 for documentVector in documentVectors  if documentVector[word] != 0)
+
+    def idf(self,documentVectors, n_containing):
+        # print n_containing
+        return math.log(len(documentVectors) / n_containing)
+
+    def tfidf(self,value,idf):
+        # print  float(value * idf)
+        return float(value * idf)
+
 
 
 if __name__ == '__main__':
 
     # query = raw_input("\nTerm Frequency (TF) Weighting + Cosine Similarity : ")
-
+    #
     # print ("\nDocID\tScore")
 
     documents = []
@@ -216,10 +237,10 @@ if __name__ == '__main__':
     # print("Term Frequency (TF) Weighting + Jaccard Similarity : ")
     # print ("\nDocID\tScore")
 
-    vectorSpace.tfJaccard(["drill wood sharp"],docID)
+    # vectorSpace.tfJaccard(["drill wood sharp"],docID)
     # vectorSpace.tfJaccard(query.split(' '),docID)
 
-    # vectorSpace.tfidfcos(text)
+    vectorSpace.tfidfcos(["drill wood sharp"],docID)
 
 
 ###################################################
