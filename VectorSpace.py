@@ -1,6 +1,7 @@
 from pprint import pprint
 from Parser import Parser
 from textblob import TextBlob as tb
+from nltk.tag import pos_tag
 from numpy import multiply
 import numpy as np
 import util
@@ -177,6 +178,8 @@ class VectorSpace:
 
             print("\n{}\t{}".format(word, round(score, 6)))
 
+        self.feedBack(searchList,sorted_doc[0][0],docID)
+
         return
 
     def n_containing(self,word, documentVectors):
@@ -193,9 +196,58 @@ class VectorSpace:
 
     def tfidfJaccard(self,searchList,docID):
 
+        ratings = [self.JaccardScore(self.querytfidf, doc) for doc in self.doctfidfs]
+
+        dictionary = dict(zip(docID, ratings))
+
+        sorted_doc = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
+
+        for word, score in sorted_doc[:5]:
+
+            print("\n{}\t{}".format(word, round(score, 6)))
+
+        # print("Feedback Queries TF-IDF Weighting + Jaccard Similarity : ")
+        # print ("\nDocID\tScore")
+
+        # get the first document and call self.feedBack(sorted_doc[1],docID)
+        # print sorted_doc[0][0]
+
+        return
+
+    def feedBack(self,searchList,document1,docID):
+
+        querytfidf = []
+
         queryVector = self.buildQueryVector(searchList)
 
-        ratings = [self.JaccardScore(self.querytfidf, doc) for doc in self.doctfidfs]
+        filename = './documents/' + document1 + '.product'
+
+        FILE = open(filename,"r")
+
+        content = FILE.read()
+
+        # print content
+
+        fdbkQuery = self.getNV(content)
+
+        print fdbkQuery
+
+        document1Vector = [0] * len(self.vectorKeywordIndex)
+
+        for word in fdbkQuery:
+            document1Vector[self.vectorKeywordIndex[word]] += 1; #Use simple Term Count Model
+
+        print document1Vector
+
+        newQueryVector = 1 * queryVector + 0.5 * document1Vector
+
+        print newQueryVector
+
+        for  i,(value,idf) in enumerate(zip(newQueryVector, idfs)):
+            querytfidf.append(self.tfidf(newQueryVector[i],idf))
+        print querytfidf
+
+        ratings = [self.JaccardScore(querytfidf, doc) for doc in self.doctfidfs]
 
         dictionary = dict(zip(docID, ratings))
 
@@ -207,21 +259,17 @@ class VectorSpace:
 
         return
 
-    def feedBack(self,searchList,docID):
+    def getNV(self,document1):
 
-        queryVector = self.buildQueryVector(searchList)
+        vocabularyList = self.parser.tokenise(document1)
+        vocabularyList = self.parser.removeStopWords(vocabularyList)
+        uniqueVocabularyList = util.removeDuplicates(vocabularyList)
 
-        ratings = [self.JaccardScore(self.querytfidf, doc) for doc in self.doctfidfs]
+        tagged_sent = pos_tag(uniqueVocabularyList)
+        fdbkQuery = [word for word,pos in tagged_sent if pos.startswith('V') or pos.startswith('N')]
+        # print fdbkQuery
 
-        dictionary = dict(zip(docID, ratings))
-
-        sorted_doc = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
-
-        for word, score in sorted_doc[:5]:
-
-            print("\n{}\t{}".format(word, round(score, 6)))
-
-        return
+        return fdbkQuery
 
 
 
@@ -254,13 +302,13 @@ if __name__ == '__main__':
     # print ("\nDocID\tScore")
     # vectorSpace.tfJaccard(query.split(' '),docID)
 
-    # vectorSpace.tfJaccard(["drill wood sharp"],docID)
+    vectorSpace.tfJaccard(["drill wood sharp"],docID)
 
     # print("TF-IDF Weighting + Cosine Similarity : ")
     # print ("\nDocID\tScore")
     # vectorSpace.tfidfcos(query.split(' '),docID)
 
-    vectorSpace.tfidfcos(["drill wood sharp"],docID)
+    # vectorSpace.tfidfcos(["drill wood sharp"],docID)
 
     # print("TF-IDF Weighting + Jaccard Similarity : ")
     # print ("\nDocID\tScore")
