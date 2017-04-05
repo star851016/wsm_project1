@@ -28,6 +28,8 @@ class VectorSpace:
 
     doctfidfs = []
 
+    idfs = []
+
 
     def __init__(self, documents=[]):
         self.documentVectors=[]
@@ -145,7 +147,7 @@ class VectorSpace:
 
         n_containings = []
 
-        idfs = []
+
 
         queryVector = self.buildQueryVector(searchList)
 
@@ -154,14 +156,14 @@ class VectorSpace:
         # print n_containings
 
         for n_containing in n_containings:
-            idfs.append(self.idf(queryVector,n_containing))
+            self.idfs.append(self.idf(queryVector,n_containing))
         # print idfs
 
-        for  i,(value,idf) in enumerate(zip(queryVector, idfs)):
+        for  i,(value,idf) in enumerate(zip(queryVector, self.idfs)):
             self.querytfidf.append(self.tfidf(queryVector[i],idf))
         # print querytfidf
 
-        for  i ,(documentVector,idf) in enumerate(zip(self.documentVectors, idfs)):
+        for  i ,(documentVector,idf) in enumerate(zip(self.documentVectors, self.idfs)):
             doctfidf = []
             for i in range(0, len(documentVector)):
                 doctfidf.append(self.tfidf(documentVector[i],idf))
@@ -237,13 +239,16 @@ class VectorSpace:
         for word in fdbkQuery:
             document1Vector[self.vectorKeywordIndex[word]] += 1; #Use simple Term Count Model
 
-        print document1Vector
+        # print document1Vector
 
-        newQueryVector = 1 * queryVector + 0.5 * document1Vector
+        document1Vector = [i * 0.5 for i in document1Vector]
+        queryVector = [i * 1 for i in queryVector]
+
+        newQueryVector = [sum(x) for x in zip(document1Vector, queryVector)]
 
         print newQueryVector
 
-        for  i,(value,idf) in enumerate(zip(newQueryVector, idfs)):
+        for  i,(value,idf) in enumerate(zip(newQueryVector, self.idfs)):
             querytfidf.append(self.tfidf(newQueryVector[i],idf))
         print querytfidf
 
@@ -302,13 +307,13 @@ if __name__ == '__main__':
     # print ("\nDocID\tScore")
     # vectorSpace.tfJaccard(query.split(' '),docID)
 
-    vectorSpace.tfJaccard(["drill wood sharp"],docID)
+    # vectorSpace.tfJaccard(["drill wood sharp"],docID)
 
     # print("TF-IDF Weighting + Cosine Similarity : ")
     # print ("\nDocID\tScore")
     # vectorSpace.tfidfcos(query.split(' '),docID)
 
-    # vectorSpace.tfidfcos(["drill wood sharp"],docID)
+    vectorSpace.tfidfcos(["store"],docID)
 
     # print("TF-IDF Weighting + Jaccard Similarity : ")
     # print ("\nDocID\tScore")
